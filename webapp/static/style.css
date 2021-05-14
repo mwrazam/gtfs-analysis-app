@@ -1,0 +1,189 @@
+/* http://meyerweb.com/eric/tools/css/reset/ 
+   v2.0 | 20110126
+   License: none (public domain)
+*/
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+    vertical-align: baseline;
+    font-family: 'Roboto', sans-serif;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+h1 {
+    font-size: 30px;
+    color: slategray;
+    font-weight: 100;
+    margin: 10px;
+}
+h2 {
+    font-size: 22px;
+    font-weight: 400;
+    color: darkslategray;
+    margin: 10px;
+}
+/* PAGE STYLES START HERE */
+.title {
+    font-size: 40px;
+    padding: 10px;
+    font-weight: 100;
+    background-color: dodgerblue;
+    color: #fff;
+}
+nav {
+    padding: 10px;
+    background-color: slategray;
+}
+ul.navigation li {
+    display: inline;
+    font-size: 20px;
+    font-weight: 300;
+    padding: 5px 15px 5px 15px;
+}
+ul.navigation li a {
+    color: white;
+    text-decoration: none;
+}
+ul.navigation li a:hover {
+    color: gold;
+}
+
+#agency-list-table {
+    margin: 10px;
+}
+#agency-list-table td {
+    padding: 10px;
+}
+#agency-list-table th {
+    text-align: left;
+    font-size: 18px;
+    font-weight: 300;
+    background-color: dodgerblue;
+    color: white;
+    padding: 10px;
+    
+}
+#mapid {
+    height: 950px;
+    width: 100%;
+}
+
+#routes-container {
+    background-color: gainsboro;
+    float:left; 
+    width:20%;
+    display: block;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 950px;
+}
+#map-container { 
+    overflow:hidden;
+    min-height:170px;
+    display: block;
+}
+#top-panel {
+    height: 50px;
+    display: block;
+}
+
+#map-control-panel {
+    height: 20px;
+    background-color: gainsboro;
+}
+
+#route-total {
+    float: left;
+    width: 20%;
+    display: block;
+}
+
+#map-controls-left {
+    float: left;
+    width: 50%;
+    display: block;
+    margin: 10px 0 0 10px;
+}
+
+#map-controls-right {
+    display: block;
+    padding-top: 10px;
+}
+
+.no-show {
+    visibility: hidden;
+}
+.toggle-buttons {
+    font-size: 14px;
+    padding: 4px;
+    float: left;
+    margin-right: 20px;
+}
+
+.route-container {
+    padding: 5px;
+    color: darkslategray;
+    background-color: white;
+}
+.route-container:hover {
+    background-color:gold;
+    cursor: pointer;
+}
+.route-number {
+    height: 30px;
+    width: 50px;
+    float: left;
+    display: block;
+    font-size: 18px;
+}
+.route-name {
+    font-size: 16px;
+    display: block;
+    min-height: 30px;
+}
+.active-container {
+    background-color:gold;
+}
+#trip-counter {
+    font-size: 22px;
+    font-weight: 400;
+    color: darkslategray;
+    margin: 5px 10px 0 20px;
+}

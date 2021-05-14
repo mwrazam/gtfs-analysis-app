@@ -1,0 +1,1 @@
+Static .txt files go in here. They can be pretty large.

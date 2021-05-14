@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% if title %}{% block title %} - {{title}}{% endblock %}{% endif %}
+
+{% block content %}
+
+<div id="top-panel">
+    <div id="route-total"><h2>{{ routes | length }} routes for {{agency.capitalize()}}</h1></div>
+    <div id="map-controls-left"></div>
+    <div id="map-controls-right">
+        <button onclick="drawTripsFor(current_route)" class="toggle-buttons no-show" id="toggle-paths-button">Show real-time trips</button>
+        <div id="trip-counter"></div>
+    </div>
+</div>
+
+<div id="routes-container">
+    
+    {% for route in routes %}
+    <div onclick="drawShapeFor('{{ route[0] }}')" class="route-container" id="{{route[0]}}-container">
+        <div class="route-number">{{ route[2] }}</div>
+        <div class="route-name">{{ route[3] }}</div>
+    </div>
+
+    {% endfor %}
+</div>
+<div id="map-container">
+    <div id="mapid"></div>
+</div>
+
+<!-- TODO: Need to get this javascript into a seperate file for cleanliness, issue is I can't figure out how to pass variables to static JS files  -->
+<script>
+
+// Get the agency we are working with from the URL
+var agency = window.location.href.split("/").slice(-1)[0];
+var current_route = "";
+
+// map container and layer container
+var mymap = L.map('mapid');
+var routeGroundTruthLayers = new L.LayerGroup();
+var routesRecordedLayers = new L.LayerGroup();
+
+var agency_info = function() {
+    // Get ground truth data from the API for all paths associated with this route
+    fetch('http://127.0.0.1:5000/agency_info/' + agency +'')
+        .then(
+            function(response) {
+                if (response.status !== 200) {
+                    console.log('Error getting agency info for ' + name + ', ' + response.status);
+                    return;
+                }
+            
+                response.json().then(function(data) {
+                    return data
+                });
+            }
+        )
+        .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+        });
+}()
+
+// MOVE THIS FUNCTION OVER INTO A LIBRARY JS FILE
+function docReady(fn) {
+    // see if DOM is already available
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        // call on next available tick
+        setTimeout(fn, 1);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
+// Draw the map
+docReady(function() {
+    // TODO: REPLACE THIS WITH AN API CALL TO GET THE AGENCY_DATA
+    var agency = {{ agency_data | tojson }};
+
+    //var mymap = L.map('mapid').setView([agency['lng'],agency['lat']], 13);
+    mymap.setView([agency['lng'],agency['lat']], 13);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibXdyYXphbSIsImEiOiJja2k5ZGR0OGUwZWkyMnNxdG4yamc3ZGFlIn0.0U_kofd7JY4SVrF7u8tRHQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'your.mapbox.access.token'
+    }).addTo(mymap);
+
+    routeGroundTruthLayers.addTo(mymap);
+    routesRecordedLayers.addTo(mymap);
+
+});
+
+function drawTripsFor(route_id) {
+    console.log('hello');
+    routesRecordedLayers.clearLayers();
+    var e = document.getElementById("trip-counter").innerHTML = "";
+    
+    // Get ground truth data from the API for all paths associated with this route
+    fetch('http://127.0.0.1:5000/trips/' + agency  + '/' + route_id +'')
+        .then(
+            function(response) {
+            if (response.status !== 200) {
+                console.log('Error getting trip data for route_id: ' + route_id + ' ' + response.status);
+                return;
+            }
+            // Operate on the API response
+            response.json().then(function(data) {
+                console.log(data.length);
+
+                // update layers
+                tripStyles = { "color": "red", "weight":1 , "opacity": 1};
+                
+                var trips = data['trips'];
+
+                // update counter to tell us how many trips we have loaded
+                var e = document.getElementById("trip-counter").innerHTML = trips.length + " trips shown";
+
+                for(var t=0; t < trips.length; t++) {
+                    var line = data['data'][trips[t]];
+                    tripPath = [{"type": "LineString", "coordinates": line}];
+                    var layerTrip = new L.geoJSON(tripPath, { style: tripStyles });
+                    routesRecordedLayers.addLayer(layerTrip);
+                }
+            });
+            }
+        )
+        .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+        });
+
+}
+
+function drawShapeFor(route_id) {
+    var active_containers = document.getElementsByClassName("route-container active-container");
+    [].forEach.call(active_containers, function(e) {
+        e.classList.remove("active-container");
+    });
+    var active_container = document.getElementById(route_id+"-container");
+    active_container.classList.add("active-container");
+    var e = document.getElementById("trip-counter").innerHTML = "";
+
+    routesRecordedLayers.clearLayers();
+    routeGroundTruthLayers.clearLayers();
+
+    // Get ground truth data from the API for all paths associated with this route
+    fetch('http://127.0.0.1:5000/route/' + agency  + '/' + route_id +'')
+        .then(
+            function(response) {
+            if (response.status !== 200) {
+                console.log('Error getting data for route_id: ' + route_id + ' ' + response.status);
+                return;
+            }
+            
+            var element = document.getElementById("toggle-paths-button");
+            element.classList.remove("no-show");
+            // Operate on the API response
+            response.json().then(function(data) {
+                current_route = route_id;
+                // update layers
+                var shapes = data['shapes'];
+                for(var i = 0; i < shapes.length; i++) {
+                    var shape = shapes[i];
+                    var linePath = data['data'][shape]['path'];
+
+                    // RANDOM COLOR GENERATOR FOR GEOJSON LINES
+                    var color= "rgb("+Math.floor(Math.random() * 255)+" ,"+Math.floor(Math.random() * 255)+","+ Math.floor(Math.random() * 255)+")";
+                    tripStyles = { "color": color, "weight": 3, "opacity": 0.5}
+                    tripPath = [{"type": "LineString", "coordinates": linePath}];
+
+                    //L.geoJson(tripPath, { style: tripStyles }).addTo(mymap)
+                    var layerTruth = new L.geoJSON(tripPath, { style: tripStyles });
+                    routeGroundTruthLayers.addLayer(layerTruth);
+                }
+            });
+            }
+        )
+        .catch(function(err) {
+            console.log('Fetch Error :-S', err);
+        });
+}
+
+</script>
+
+{% endblock %}

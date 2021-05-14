@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% if title %}{% block title %} - {{title}}{% endblock %}{% endif %}
+
+{% block content %}
+
+<div id="top-panel">
+    <div><h2>Error calculations for route {{route}} in {{agency}}</h2></div>
+</div>
+
+<div id="map-container" style="height:800px;">
+    <div id="mapid"></div>
+</div>
+<h2 id="num_points_truth"></h2>
+<h2 id="num_points_recorded"></h2>
+
+<!-- TODO: Need to get this javascript into a seperate file for cleanliness, issue is I can't figure out how to pass variables to static JS files  -->
+<script>
+// map container and layer container
+var mymap = L.map('mapid');
+var routeGroundTruthLayers = new L.LayerGroup();
+var routesRecordedLayers = new L.LayerGroup();
+var rec_line = [];
+var add_line = []
+
+// MOVE THIS FUNCTION OVER INTO A LIBRARY JS FILE
+function docReady(fn) {
+    // see if DOM is already available
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        // call on next available tick
+        setTimeout(fn, 1);
+    } else {
+        document.addEventListener("DOMContentLoaded", fn);
+    }
+}
+
+// Draw the map
+docReady(function() {
+    // TODO: REPLACE THIS WITH AN API CALL TO GET THE AGENCY_DATA
+    url_path_info = window.location.href.split("/").splice(-2,2);
+    agency = url_path_info[0];
+    route = url_path_info[1];
+    lat = 48.4;
+    lng = -123.4;
+
+    var shape_id = null; // Add this to the url for calling specific data
+    
+    //var mymap = L.map('mapid').setView([agency['lng'],agency['lat']], 13);
+    mymap.setView([lat,lng], 13);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibXdyYXphbSIsImEiOiJja2k5ZGR0OGUwZWkyMnNxdG4yamc3ZGFlIn0.0U_kofd7JY4SVrF7u8tRHQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18, id: 'mapbox/streets-v11', tileSize: 512, zoomOffset: -1, accessToken: 'your.mapbox.access.token' }).addTo(mymap);
+
+    routeGroundTruthLayers.addTo(mymap);
+    routesRecordedLayers.addTo(mymap);
+
+    var marker = L.marker([48.499014, -123.388922]).addTo(mymap); // add starting marker
+
+    Promise.all([
+        fetch('http://127.0.0.1:5000/route/' + agency  + '/' + route +''),
+        fetch('http://127.0.0.1:5000/trips/' + agency  + '/' + route +'')
+    ]).then(function (responses) {
+        // Get a JSON object from each of the responses
+        return Promise.all(responses.map(function (response) {
+            return response.json();
+        }));
+    }).then(function (data) {
+        var ground_truth = data[0], recorded_paths = data[1];
+        var trip_id = recorded_paths['trips'][4]; // grab a single specific route (shape_id) to analyze
+        var shape_id = recorded_paths['metadata'][trip_id][7]; // currently only using shape_id, the direction should automatically match, but it might be better to grab that too and cross-check it
+
+        // draw recorded line and points
+        var rec_line = recorded_paths['data'][trip_id];
+        drawLine(rec_line, routesRecordedLayers, "red");
+        drawCircles(rec_line, "red");
+        var e = document.getElementById("num_points_recorded").innerHTML = rec_line.length + " points in recorded path";
+
+        // draw ground truth line
+        var true_line = ground_truth['data'][shape_id]['path'];
+        drawLine(true_line, routeGroundTruthLayers, "steelblue");
+        drawCircles(true_line, "steelblue");
+        var e = document.getElementById("num_points_truth").innerHTML = true_line.length + " points in ground truth path";
+
+        // Calculate errors between the two lines
+        // Probably don't need this section right now, as the true line is almost gauranteed to be longer
+
+
+        for (var r_i = 0; r_i < rec_line.length - 1; r_i++) {
+            var R1 = rec_line[r_i], R2 = rec_line[r_i + 1];
+
+            // find point closest to R1 on true_line
+            for (var t_i = 0; t_i < true_line.length - 1; t_i++) {
+
+            }
+        }
+        
+        /*
+        var to_update, reference = (function() {
+            if (rec_line.length == true_line.length) return null, null; // nothing to do, both lines match in their number of points
+            else if (rec_line.length < true_line.length) return rec_line, true_line;
+            else if (true_line.length < rec_line.length) return true_line, rec_line;
+            else return null, null; // don't know what to do
+        })();
+        */
+
+        /*
+
+        for (var r_i = 0; r_i < rec_line.length - 1; r_i++) {
+            var R1 = rec_line[r_i], R2 = rec_line[r_i + 1];
+            var R1_idx = 0, R2_idx = R1_idx + 1;
+            // Get index of closest points to these two on true_line
+            t1 = 0;
+            while (t_i < true_line.length - 1) {
+                min_dist = 0;
+
+            }
+
+            
+
+
+            //console.log("R1 is " + String(R1) + " , R2 is " + String(R2));
+        }*/
+
+    }).catch(function (error) {
+        // if there's an error, log it
+        console.log(error);
+    });
+
+});
+
+function calculateTotalError(r_line, t_line) {
+    // 1. loop over every 'triangle' formed by two lines iteratively
+    //   -- example, first triangle formed by R1R2T1, and then by R1T1T2 --
+    // 2. Calculate area formed by each triangle
+    //      a.) Find length of two adjacent sides, i.e. R1R2 and R1T1, and determine angle
+    //      b.) Calculate area by SIN(A) * (R1R2*R1T1)/2, where A is the angle between R1R2 and R1T1
+    //      c.) Add to rolling total
+    // 3. Repeat
+}
+
+function equalizeLinePointsCount(r_line, t_line) {
+    // *** METHOD 1 *** //
+    // go through the line that needs points added
+    // 1.) Determine working interval
+    //      a.) set start point
+    //      b.) use a loop to determine a suitable end point
+    // 2.) Add points to the to_update line
+    //      a.) first count number of points between start and end 
+    //      b.) determine y = mx + b for to_update line segment
+    //      b.) simply add the number of points at even intervals (should consider using projections here in the future)
+    // 3.) Compare output lines to ensure they have the same number of points
+
+    // *** METHOD 2 *** //
+    // Add more points simply by determining the number of points to add and just average it out over the entire length
+
+
+
+
+    // return updated recorded line, truth line, as well as an array with all of the points we added
+
+}
+
+// utility functions for drawing shapes onto map
+function drawLine(points, layer, color) {
+    lineStyles = { "color": color, "weight": 3, "opacity": 1}
+    linePath = [{"type": "LineString", "coordinates": points}];
+    var newLineLayer = new L.geoJSON(linePath, { style: lineStyles });
+    layer.addLayer(newLineLayer);
+}
+function drawCircles(points, color) {
+    for(var i=0; i<points.length; i++) {
+        L.circleMarker([points[i][1], points[i][0]], {radius:3, color:color, fillColor:color, fillOpacity:1}).addTo(mymap);
+    }
+}
+
+</script>
+
+{% endblock %}

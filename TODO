@@ -1,0 +1,24 @@
+DONE # Sync agency tombstone data into database
+DONE    - add reload option
+
+# Get static data for victoria and adelaide into static databases
+    - copy static sample databases
+
+# Copy real-time sample databases for each agency into database
+
+# Create script that does real-time data feed harvesting for all agencies
+    - No need for CRON now, just real-time data loading
+    - Store data into databases
+
+# Create basic Flask APP
+    - Create hooks to load data
+    - Convert data into JSON objects for mapping
+    - Create Google Maps container and try to display a track for a vehicle
+    - Add more trips, add option to change agency, add option to change trip
+
+
+## LONG TERM TODOs
+
+# Create abstract helper class to manage static data files
+# Create data classes for Agency
+

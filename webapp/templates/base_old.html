@@ -1,0 +1,81 @@
+<!doctype html>
+<head>
+<title>Transit Research App</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com"> 
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+    <script   src="https://code.jquery.com/jquery-3.5.1.slim.min.js"   integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="   crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+<div class="title">Transit Research App</div>
+
+<nav>
+    <ul class="navigation">
+        {% for agency in agencies %}
+        <li><a href="">{{agency['agency_name']}}</a></li>
+        {% endfor %}
+    </ul>
+</nav>
+
+<div id="mapid">
+</div>
+<script>
+$( document ).ready(function() {
+
+    var trip = {{ trip|tojson }}
+    console.log(trip);
+
+    var mymap = L.map('mapid').setView([-34.9,138.6], 13);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibXdyYXphbSIsImEiOiJja2k5ZGR0OGUwZWkyMnNxdG4yamc3ZGFlIn0.0U_kofd7JY4SVrF7u8tRHQ', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'your.mapbox.access.token'
+    }).addTo(mymap);
+
+    var tripPath = [{
+        "type": "LineString",
+        "coordinates": trip['data']
+    }];
+    var tripStyles = {
+        "color": "blue",
+        "weight": 1,
+        "opacity": 0.65
+    };
+
+    L.geoJSON(tripPath, {
+        style: tripStyles
+    }).addTo(mymap);
+
+
+    var i;
+    for (i = 1; i < trip['data'].length; i++) {
+        var point = trip['data'][i];
+        L.geoJSON({
+            "type": "Point",
+            "coordinates": point
+        }, {style: tripStyles}).addTo(mymap)
+    }
+
+
+
+});
+
+
+</script>
+<!--<script type="text/javascript"
+            src="{{ url_for('static', filename='mapper.js') }}"></script>-->
+
+</body>

@@ -1,0 +1,13 @@
+click==8.0.0
+Flask==2.0.0
+greenlet==1.1.0
+gtfs==0.1.2
+gtfs-realtime-bindings==0.0.7
+itsdangerous==2.0.0
+Jinja2==3.0.0
+MarkupSafe==2.0.0
+protobuf==3.17.0
+psycopg2==2.8.6
+six==1.16.0
+SQLAlchemy==1.4.15
+Werkzeug==2.0.0

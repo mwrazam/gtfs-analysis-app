@@ -105,6 +105,10 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.appenv
+appenv/
+appenv.bak/
+.vscode
 
 # Spyder project settings
 .spyderproject
@@ -123,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# application specific stuff we don't want to clutter the repo with
+Data/static_zips/*.zip
+Data/victoria/static/*.txt
+Data/adelaide/static/*.txt

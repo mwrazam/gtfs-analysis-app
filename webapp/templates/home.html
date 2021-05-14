@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% if title %}{% block title %}{{title}}{% endblock %}{% endif %}
+
+{% block content %}
+<h1>Available agencies</h1>
+<table id="agency-list-table">
+    <tr>
+      <th>Name</th>
+      <th>Location</th> 
+      <th>Coordinates</th>
+      <th>Static data</th>
+      <th>Real-time positions</th>
+      <th>Recorded count</th>
+      <th>Update frequency</th>
+      <th>Map</th>
+    </tr>
+    {% for agency in agencies %}
+    <tr>
+      <td>{{ agency['agency_name'].capitalize() }}</td>
+      <td>{{ agency['city'] }}, {{  agency['country'] }}</td>
+      <td>{% if agency['active'] %}({{ agency['lat'] }}, {{agency['lng']}}){% endif %}</td> 
+      <td><a href="{{ agency['static'] }}">{{ agency['static'] }}</a></td>
+      <td><a href="{{ agency['vehicle_positions'] }}">{{ agency['vehicle_positions'] }}</a></td>
+      <td>{% if agency['active'] %}{{ agency['count'] }}{% endif %}</td>
+      <td>{% if agency['active'] %}{{ agency['vehicle_positions_freq'] }}s{% endif %}</td>
+      <td>{% if agency['active'] %}<a href="{{ url_for('map_page', agency=agency['agency_name']) }}">Link</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+{% endblock %}
